@@ -1,0 +1,22 @@
+IMAGE_NAME = "ubuntu/focal64"
+
+Vagrant.configure("2") do |config|
+    config.ssh.insert_key = false
+
+    config.vm.provider "virtualbox" do |v|
+        v.memory = 2048
+        v.cpus = 2
+    end
+
+    config.vm.define "k8s-master" do |master|
+        master.vm.box = IMAGE_NAME
+        master.vm.network "private_network", ip: "10.120.70.10"
+        master.vm.hostname = "k8s-master"
+        master.vm.provision "ansible" do |ansible|
+            ansible.playbook = "master.yml"
+            ansible.extra_vars = {
+                node_ip: "10.120.70.10",
+            }
+        end
+    end
+end
