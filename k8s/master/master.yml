@@ -11,11 +11,11 @@
       update_cache: yes
     vars:
       packages:
-      - apt-transport-https
-      - ca-certificates
-      - curl
-      - gnupg-agent
-      - software-properties-common
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - gnupg-agent
+        - software-properties-common
 
   - name: Add an apt signing key for Docker
     ansible.builtin.apt_key:
@@ -28,15 +28,15 @@
       state: present
 
   - name: Install docker and its dependecies
-    ansible.builtin.apt: 
+    ansible.builtin.apt:
       name: "{{ packages }}"
       state: present
       update_cache: yes
     vars:
       packages:
-      - docker-ce 
-      - docker-ce-cli 
-      - containerd.io
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
     notify:
       - docker status
 
@@ -72,14 +72,14 @@
       filename: kubernetes.list
 
   - name: Install k8s binaries
-    ansible.builtin.apt: 
+    ansible.builtin.apt:
       name: "{{ packages }}"
       state: present
       update_cache: yes
     vars:
       packages:
-        - kubelet 
-        - kubeadm 
+        - kubelet
+        - kubeadm
         - kubectl
 
   - name: Configure node ip
@@ -100,31 +100,31 @@
       dest: /etc/docker/daemon.json
       mode: 0600
 
-   - name: Enable and restart docker
-     ansible.builtin.systemd:
-       name: docker
-       state: restarted
-       enabled: yes
-       daemon_reload: yes
+  - name: Enable and restart docker
+    ansible.builtin.systemd:
+      name: docker
+      state: restarted
+      enabled: yes
+      daemon_reload: yes
 
   # Initialise the k8s cluster
   - name: Initialize the k8s cluster using kubeadm
     ansible.builtin.command: kubeadm init --apiserver-advertise-address="0.0.0.0" --apiserver-cert-extra-sans="10.120.60.10" --node-name k8s-master --pod-network-cidr=10.120.0.0/16
 
-  # Setup the kube config file for the root user to access the k8s cluster 
+  # Setup the kube config file for the root user to access the k8s cluster
   - name: Setup kubeconfig for root user
     ansible.builtin.command: "{{ item }}"
     with_items:
-     - mkdir -p /root/.kube
-     - cp -i /etc/kubernetes/admin.conf /root/.kube/config
+      - mkdir -p /root/.kube
+      - cp -i /etc/kubernetes/admin.conf /root/.kube/config
 
   # Setup the kube config file for the vagrant user to access the k8s cluster
   - name: Setup kubeconfig for vagrant user
     ansible.builtin.command: "{{ item }}"
     with_items:
-     - mkdir -p /home/vagrant/.kube
-     - cp -i /etc/kubernetes/admin.conf /home/vagrant/.kube/config
-     - chown vagrant:vagrant /home/vagrant/.kube/config
+      - mkdir -p /home/vagrant/.kube
+      - cp -i /etc/kubernetes/admin.conf /home/vagrant/.kube/config
+      - chown vagrant:vagrant /home/vagrant/.kube/config
 
   # Setup the container networking provider and the network policy engine
   - name: Install calico pod network
