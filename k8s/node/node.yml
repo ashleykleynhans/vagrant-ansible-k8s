@@ -94,6 +94,19 @@
       daemon_reload: yes
       state: restarted
 
+  - name: Copy docker.json to /etc/docker/daemon.json
+    ansible.builtin.copy:
+      src: docker.json
+      dest: /etc/docker/daemon.json
+      mode: 0600
+
+  - name: Enable and restart docker
+    ansible.builtin.systemd:
+      name: docker
+      state: restarted
+      enabled: yes
+      daemon_reload: yes
+
   - name: Copy the join command to server location
     ansible.builtin.copy:
       src: /tmp/join-command

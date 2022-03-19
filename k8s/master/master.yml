@@ -109,7 +109,7 @@
 
   # Initialise the k8s cluster
   - name: Initialize the k8s cluster using kubeadm
-    ansible.builtin.command: kubeadm init --apiserver-advertise-address="0.0.0.0" --apiserver-cert-extra-sans="10.120.60.10" --node-name k8s-master --pod-network-cidr=10.120.0.0/16
+    ansible.builtin.command: kubeadm init --apiserver-advertise-address 10.120.70.10 --apiserver-cert-extra-sans "10.120.70.10" --node-name k8s-master --pod-network-cidr=10.120.0.0/16
 
   # Setup the kube config file for the root user to access the k8s cluster
   - name: Setup kubeconfig for root user
