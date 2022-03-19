@@ -94,9 +94,22 @@
       daemon_reload: yes
       state: restarted
 
+  - name: Copy docker.json to /etc/docker/daemon.json
+    ansible.builtin.copy:
+      src: docker.json
+      dest: /etc/docker/daemon.json
+      mode: 0600
+
+   - name: Enable and restart docker
+     ansible.builtin.systemd:
+       name: docker
+       state: restarted
+       enabled: yes
+       daemon_reload: yes
+
   # Initialise the k8s cluster
   - name: Initialize the k8s cluster using kubeadm
-    ansible.builtin.command: kubeadm init --apiserver-advertise-address="10.120.60.10" --apiserver-cert-extra-sans="10.120.60.10" --node-name k8s-master --pod-network-cidr=10.120.0.0/16
+    ansible.builtin.command: kubeadm init --apiserver-advertise-address="0.0.0.0" --apiserver-cert-extra-sans="10.120.60.10" --node-name k8s-master --pod-network-cidr=10.120.0.0/16
 
   # Setup the kube config file for the root user to access the k8s cluster 
   - name: Setup kubeconfig for root user
