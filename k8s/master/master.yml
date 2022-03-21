@@ -109,7 +109,7 @@
 
   # Initialise the k8s cluster
   - name: Initialize the k8s cluster using kubeadm
-    ansible.builtin.command: kubeadm init --apiserver-advertise-address 10.120.70.10 --apiserver-cert-extra-sans "10.120.70.10" --node-name k8s-master --pod-network-cidr=10.120.0.0/16
+    ansible.builtin.command: kubeadm init --apiserver-advertise-address 192.168.56.10 --apiserver-cert-extra-sans "192.168.56.10" --node-name k8s-master --pod-network-cidr=192.168.0.0/16
 
   # Setup the kube config file for the root user to access the k8s cluster
   - name: Setup kubeconfig for root user
@@ -137,6 +137,10 @@
       dest: /tmp/join-command
     delegate_to: localhost
     become: no
+
+  # Install kube-flannel
+  - name: Install kube-flannel
+    ansible.builtin.command: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
 
   # Setup a handler for checking Docker daemon
   handlers:
