@@ -6,12 +6,36 @@ WORKER_IP_START = 20
 LB_IP_START = 30
 
 IMAGE_NAME = "ubuntu/focal64"
-IP_NW = "192.168.56."
+PUBLIC_IP_NW = "192.168.56."
+PRIVATE_IP_NW = "10.10.10."
 
 Vagrant.configure("2") do |config|
     config.vm.box = IMAGE_NAME
     config.vm.box_check_update = false
     config.ssh.insert_key = false
+
+    # Provision Load Balancer Node
+    config.vm.define "k8s-lb" do |node|
+        node.vm.provider "virtualbox" do |vb|
+            vb.name = "k8s-lb"
+            vb.memory = 512
+            vb.cpus = 1
+        end
+        node.vm.hostname = "k8s-lb"
+        node.vm.network :public_network, ip: PUBLIC_IP_NW + "#{LB_IP_START}", bridge: [
+            "eth0",
+            "en0: Wi-Fi",
+            "en0: Wi-Fi (AirPort)",
+            "en0: Wi-Fi (Wireless)",
+        ]
+        node.vm.network :private_network, ip: PRIVATE_IP_NW + "#{LB_IP_START}"
+        node.vm.provision "ansible" do |ansible|
+            ansible.playbook = "ansible/loadbalancer.yml"
+            ansible.extra_vars = {
+                node_ip: PUBLIC_IP_NW + "#{LB_IP_START}",
+            }
+        end
+    end
 
     # Provision Master Nodes
     (1..MASTER_NODES).each do |i|
@@ -23,32 +47,23 @@ Vagrant.configure("2") do |config|
                 vb.cpus = 2
             end
             node.vm.hostname = "k8s-master-#{i}"
-            node.vm.network :private_network, ip: IP_NW + "#{MASTER_IP_START + i}"
-            node.vm.network "forwarded_port", guest: 22, host: "#{2710 + i}"
+            node.vm.network :public_network, ip: PUBLIC_IP_NW + "#{MASTER_IP_START + i}", bridge: [
+                "eth0",
+                "en0: Wi-Fi",
+                "en0: Wi-Fi (AirPort)",
+                "en0: Wi-Fi (Wireless)",
+            ]
+            node.vm.network :private_network, ip: PRIVATE_IP_NW + "#{MASTER_IP_START + i}"
             node.vm.provision "ansible" do |ansible|
-                ansible.playbook = "ansible/master.yml"
+                if i == 1
+                    ansible.playbook = "ansible/master_primary.yml"
+                else
+                    ansible.playbook = "ansible/master_secondary.yml"
+                end
                 ansible.extra_vars = {
-                    node_ip: IP_NW + "#{MASTER_IP_START + i}",
+                    node_ip: PUBLIC_IP_NW + "#{MASTER_IP_START + i}",
                 }
             end
-        end
-    end
-
-    # Provision Load Balancer Node
-    config.vm.define "k8s-lb" do |node|
-        node.vm.provider "virtualbox" do |vb|
-            vb.name = "k8s-lb"
-            vb.memory = 512
-            vb.cpus = 1
-        end
-        node.vm.hostname = "k8s-lb"
-        node.vm.network :private_network, ip: IP_NW + "#{LB_IP_START}"
-        node.vm.network "forwarded_port", guest: 22, host: 2730
-        node.vm.provision "ansible" do |ansible|
-            ansible.playbook = "ansible/loadbalancer.yml"
-            ansible.extra_vars = {
-                node_ip: IP_NW + "#{LB_IP_START}",
-            }
         end
     end
 
@@ -61,12 +76,17 @@ Vagrant.configure("2") do |config|
                 vb.cpus = 1
             end
             node.vm.hostname = "k8s-worker-#{i}"
-            node.vm.network :private_network, ip: IP_NW + "#{WORKER_IP_START + i}"
-		        node.vm.network "forwarded_port", guest: 22, host: "#{2720 + i}"
+            node.vm.network :public_network, ip: PUBLIC_IP_NW + "#{WORKER_IP_START + i}", bridge: [
+                "eth0",
+                "en0: Wi-Fi",
+                "en0: Wi-Fi (AirPort)",
+                "en0: Wi-Fi (Wireless)",
+            ]
+            node.vm.network :private_network, ip: PRIVATE_IP_NW + "#{WORKER_IP_START + i}"
             node.vm.provision "ansible" do |ansible|
                 ansible.playbook = "ansible/worker.yml"
                 ansible.extra_vars = {
-                    node_ip: IP_NW + "#{WORKER_IP_START + i}",
+                    node_ip: PUBLIC_IP_NW + "#{WORKER_IP_START + i}",
                 }
             end
         end

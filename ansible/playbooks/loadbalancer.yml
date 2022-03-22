@@ -27,6 +27,7 @@
         src: files/haproxy.cfg
         dest: /etc/haproxy/haproxy.cfg
         mode: 0600
+      notify: restart haproxy
 
   # Setup a handler for restarting haproxy
   handlers:

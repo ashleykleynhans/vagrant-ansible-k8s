@@ -22,12 +22,12 @@
       url: https://download.docker.com/linux/ubuntu/gpg
       state: present
 
-  - name: Add apt repository for stable version
+  - name: Add apt repository for stable version of Docker
     ansible.builtin.apt_repository:
       repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
       state: present
 
-  - name: Install docker and its dependecies
+  - name: Install docker and its dependencies
     ansible.builtin.apt:
       name: "{{ packages }}"
       state: present
@@ -107,9 +107,14 @@
       enabled: yes
       daemon_reload: yes
 
-  # Initialise the k8s cluster
-  - name: Initialize the k8s cluster using kubeadm
-    ansible.builtin.command: kubeadm init --apiserver-advertise-address 192.168.56.10 --apiserver-cert-extra-sans "192.168.56.10" --node-name k8s-master --pod-network-cidr=192.168.0.0/16
+  - name: Copy the join command to server location
+    ansible.builtin.copy:
+      src: /tmp/master-join-command
+      dest: /tmp/master-join-command.sh
+      mode: 0777
+
+  - name: Join the node to cluster
+    ansible.builtin.command: sh /tmp/master-join-command.sh
 
   # Setup the kube config file for the root user to access the k8s cluster
   - name: Setup kubeconfig for root user
@@ -125,22 +130,6 @@
       - mkdir -p /home/vagrant/.kube
       - cp -i /etc/kubernetes/admin.conf /home/vagrant/.kube/config
       - chown vagrant:vagrant /home/vagrant/.kube/config
-
-  # Generate kube join command for joining the node to the k8s cluster and store the command in the file named join-command
-  - name: Generate join command
-    ansible.builtin.command: kubeadm token create --print-join-command
-    register: join_command
-
-  - name: Copy join command to file
-    ansible.builtin.template:
-      src: templates/join_command.j2
-      dest: /tmp/join-command
-    delegate_to: localhost
-    become: no
-
-  # Install kube-flannel
-  - name: Install kube-flannel
-    ansible.builtin.command: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
 
   # Setup a handler for checking Docker daemon
   handlers:

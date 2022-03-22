@@ -22,12 +22,12 @@
       url: https://download.docker.com/linux/ubuntu/gpg
       state: present
 
-  - name: Add apt repository for stable version
+  - name: Add apt repository for stable version of Docker
     ansible.builtin.apt_repository:
       repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
       state: present
 
-  - name: Install docker and its dependecies
+  - name: Install docker and its dependencies
     ansible.builtin.apt:
       name: "{{ packages }}"
       state: present
@@ -107,14 +107,52 @@
       enabled: yes
       daemon_reload: yes
 
-  - name: Copy the join command to server location
-    ansible.builtin.copy:
-      src: /tmp/join-command
-      dest: /tmp/join-command.sh
-      mode: 0777
+  # Initialise the k8s cluster
+  - name: Initialize the k8s cluster using kubeadm
+    ansible.builtin.command: kubeadm init --control-plane-endpoint "192.168.56.30:6443"
 
-  - name: Join the node to cluster
-    ansible.builtin.command: sh /tmp/join-command.sh
+  # Setup the kube config file for the root user to access the k8s cluster
+  - name: Setup kubeconfig for root user
+    ansible.builtin.command: "{{ item }}"
+    with_items:
+      - mkdir -p /root/.kube
+      - cp -i /etc/kubernetes/admin.conf /root/.kube/config
+
+  # Setup the kube config file for the vagrant user to access the k8s cluster
+  - name: Setup kubeconfig for vagrant user
+    ansible.builtin.command: "{{ item }}"
+    with_items:
+      - mkdir -p /home/vagrant/.kube
+      - cp -i /etc/kubernetes/admin.conf /home/vagrant/.kube/config
+      - chown vagrant:vagrant /home/vagrant/.kube/config
+
+  # Generate kube join command for joining the node to the k8s cluster and store the command in the file named join-command
+  - name: Generate join command
+    ansible.builtin.command: kubeadm token create --print-join-command
+    register: join_command
+
+  # Upload certs and get the certificate key and store it in a file named cert-key
+  - name: Upload certs and get the key
+    ansible.builtin.shell: kubeadm init phase upload-certs --upload-certs | tail -n 1
+    register: cert_key
+
+  - name: Save master join command to file
+    ansible.builtin.template:
+      src: templates/master_join_command.j2
+      dest: /tmp/master-join-command
+    delegate_to: localhost
+    become: no
+
+  - name: Save worker join command to file
+    ansible.builtin.template:
+      src: templates/worker_join_command.j2
+      dest: /tmp/worker-join-command
+    delegate_to: localhost
+    become: no
+
+  # Install kube-flannel
+  - name: Install kube-flannel
+    ansible.builtin.command: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
 
   # Setup a handler for checking Docker daemon
   handlers:
