@@ -9,8 +9,6 @@ IMAGE_NAME = "ubuntu/focal64"
 PUBLIC_IP_NW = "192.168.56."
 PRIVATE_IP_NW = "10.10.10."
 
-ENV['VAGRANT_NO_PARALLEL'] = 'yes'
-
 Vagrant.configure("2") do |config|
     config.vm.box = IMAGE_NAME
     config.vm.box_check_update = false
