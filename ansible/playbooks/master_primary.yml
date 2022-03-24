@@ -18,7 +18,7 @@
     ansible.builtin.include_tasks: bootstrap_k8s.yml
 
   - name: Initialize the k8s cluster using kubeadm
-    ansible.builtin.command: kubeadm init --control-plane-endpoint "192.168.56.30:6443"
+    ansible.builtin.command: kubeadm init --control-plane-endpoint "192.168.56.30:6443" --apiserver-advertise-address 10.10.10.11
 
   - name: Include task to setup kubeconfig
     ansible.builtin.include_tasks: setup_kube_config.yml
