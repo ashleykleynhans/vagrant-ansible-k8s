@@ -2,6 +2,9 @@
 - hosts: all
   become: true
   tasks:
+  - name: Include task to create hosts file
+    ansible.builtin.include_tasks: create_hosts_file.yml
+
   - name: Include task to install packages that enable apt over HTTPS
     ansible.builtin.include_tasks: apt_over_https.yml
 
