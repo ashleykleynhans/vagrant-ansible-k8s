@@ -1,0 +1,41 @@
+---
+- name: Add an apt signing key for Docker
+  ansible.builtin.apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: Add apt repository for stable version of Docker
+  ansible.builtin.apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
+    state: present
+
+- name: Install docker and its dependencies
+  ansible.builtin.apt:
+    name: "{{ packages }}"
+    state: present
+    update_cache: yes
+  vars:
+    packages:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+  notify:
+    - docker status
+
+- name: Add vagrant user to docker group
+  ansible.builtin.user:
+    name: vagrant
+    group: docker
+
+- name: Copy docker.json to /etc/docker/daemon.json
+  ansible.builtin.copy:
+    src: ../files/docker.json
+    dest: /etc/docker/daemon.json
+    mode: 0600
+
+- name: Enable and restart docker
+  ansible.builtin.systemd:
+    name: docker
+    state: restarted
+    enabled: yes
+    daemon_reload: yes

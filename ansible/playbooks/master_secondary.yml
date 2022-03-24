@@ -1,111 +1,18 @@
 ---
-# Playbook to configure the k8s master
 - hosts: all
   become: true
   tasks:
-  # Install dependency packages and add vagrant to docker user group
-  - name: Install packages that allow apt to be used over HTTPS
-    ansible.builtin.apt:
-      name: "{{ packages }}"
-      state: present
-      update_cache: yes
-    vars:
-      packages:
-        - apt-transport-https
-        - ca-certificates
-        - curl
-        - gnupg-agent
-        - software-properties-common
+  - name: Include task to install packages that enable apt over HTTPS
+    ansible.builtin.include_tasks: apt_over_https.yml
 
-  - name: Add an apt signing key for Docker
-    ansible.builtin.apt_key:
-      url: https://download.docker.com/linux/ubuntu/gpg
-      state: present
+  - name: Include task to install Docker
+    ansible.builtin.include_tasks: install_docker.yml
 
-  - name: Add apt repository for stable version of Docker
-    ansible.builtin.apt_repository:
-      repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
-      state: present
+  - name: Include task to bootstrap k8s
+    ansible.builtin.include_tasks: bootstrap_k8s.yml
 
-  - name: Install docker and its dependencies
-    ansible.builtin.apt:
-      name: "{{ packages }}"
-      state: present
-      update_cache: yes
-    vars:
-      packages:
-        - docker-ce
-        - docker-ce-cli
-        - containerd.io
-    notify:
-      - docker status
-
-  - name: Add vagrant user to docker group
-    ansible.builtin.user:
-      name: vagrant
-      group: docker
-
-  # Kubelet will not start if the system has swap enabled, so disable swap
-  - name: Remove swapfile from /etc/fstab
-    ansible.posix.mount:
-      name: "{{ item }}"
-      fstype: swap
-      state: absent
-    with_items:
-      - swap
-      - none
-
-  - name: Disable swap
-    ansible.builtin.command: swapoff -a
-    when: ansible_swaptotal_mb > 0
-
-  # Install k8s binaries
-  - name: Add an apt signing key for k8s
-    ansible.builtin.apt_key:
-      url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
-      state: present
-
-  - name: Adding apt repository for k8s
-    ansible.builtin.apt_repository:
-      repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
-      state: present
-      filename: kubernetes.list
-
-  - name: Install k8s binaries
-    ansible.builtin.apt:
-      name: "{{ packages }}"
-      state: present
-      update_cache: yes
-    vars:
-      packages:
-        - kubelet
-        - kubeadm
-        - kubectl
-
-  - name: Configure node ip
-    ansible.builtin.lineinfile:
-      path: /etc/default/kubelet
-      line: KUBELET_EXTRA_ARGS=--node-ip={{ node_ip }}
-      create: yes
-
-  - name: Restart kubelet
-    ansible.builtin.service:
-      name: kubelet
-      daemon_reload: yes
-      state: restarted
-
-  - name: Copy docker.json to /etc/docker/daemon.json
-    ansible.builtin.copy:
-      src: files/docker.json
-      dest: /etc/docker/daemon.json
-      mode: 0600
-
-  - name: Enable and restart docker
-    ansible.builtin.systemd:
-      name: docker
-      state: restarted
-      enabled: yes
-      daemon_reload: yes
+  - name: Include task to setup kubeconfig
+    ansible.builtin.include_tasks: setup_kube_config.yml
 
   - name: Copy the join command to server location
     ansible.builtin.copy:
@@ -115,21 +22,6 @@
 
   - name: Join the node to cluster
     ansible.builtin.command: sh /tmp/master-join-command.sh
-
-  # Setup the kube config file for the root user to access the k8s cluster
-  - name: Setup kubeconfig for root user
-    ansible.builtin.command: "{{ item }}"
-    with_items:
-      - mkdir -p /root/.kube
-      - cp -i /etc/kubernetes/admin.conf /root/.kube/config
-
-  # Setup the kube config file for the vagrant user to access the k8s cluster
-  - name: Setup kubeconfig for vagrant user
-    ansible.builtin.command: "{{ item }}"
-    with_items:
-      - mkdir -p /home/vagrant/.kube
-      - cp -i /etc/kubernetes/admin.conf /home/vagrant/.kube/config
-      - chown vagrant:vagrant /home/vagrant/.kube/config
 
   # Setup a handler for checking Docker daemon
   handlers:
