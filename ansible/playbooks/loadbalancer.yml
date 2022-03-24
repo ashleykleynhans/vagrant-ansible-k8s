@@ -5,6 +5,9 @@
     - name: Include task to install packages that enable apt over HTTPS
       ansible.builtin.include_tasks: apt_over_https.yml
 
+    - name: Include task to install useful packages
+      ansible.builtin.include_tasks: install_useful_packages.yml
+
     - name: Install HAProxy
       ansible.builtin.apt:
         name: haproxy
