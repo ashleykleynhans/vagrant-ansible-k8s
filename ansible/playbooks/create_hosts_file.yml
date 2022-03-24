@@ -1,5 +1,5 @@
 ---
-- name: Create /etc/hosts file containing the IPs of our servera
+- name: Create /etc/hosts file containing the IPs of our servers
   ansible.builtin.copy:
     src: ../files/hosts
     dest: /etc/hosts
