@@ -3,19 +3,19 @@
   become: true
   tasks:
   - name: Include task to create hosts file
-    ansible.builtin.include_tasks: create_hosts_file.yml
+    ansible.builtin.include_tasks: includes/create_hosts_file.yml
 
   - name: Include task to install packages that enable apt over HTTPS
-    ansible.builtin.include_tasks: apt_over_https.yml
+    ansible.builtin.include_tasks: includes/apt_over_https.yml
 
   - name: Include task to install useful packages
-    ansible.builtin.include_tasks: install_useful_packages.yml
+    ansible.builtin.include_tasks: includes/install_useful_packages.yml
 
   - name: Include task to install Docker
-    ansible.builtin.include_tasks: install_docker.yml
+    ansible.builtin.include_tasks: includes/install_docker.yml
 
   - name: Include task to bootstrap k8s
-    ansible.builtin.include_tasks: bootstrap_k8s.yml
+    ansible.builtin.include_tasks: includes/bootstrap_k8s.yml
 
   - name: Copy the join command to server location
     ansible.builtin.copy:
