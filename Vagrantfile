@@ -9,6 +9,8 @@ IMAGE_NAME = "ubuntu/focal64"
 PUBLIC_IP_NW = "192.168.56."
 PRIVATE_IP_NW = "10.10.10."
 
+ENV['VAGRANT_NO_PARALLEL'] = 'yes'
+
 Vagrant.configure("2") do |config|
     config.vm.box = IMAGE_NAME
     config.vm.box_check_update = false
@@ -20,6 +22,13 @@ Vagrant.configure("2") do |config|
             vb.name = "k8s-lb"
             vb.memory = 512
             vb.cpus = 1
+            vb.customize ["modifyvm", :id, "--hwvirtex", "on"]
+            vb.customize ["modifyvm", :id, "--nested-hw-virt","on"]
+            vb.customize ["modifyvm", :id, "--cpuhotplug","on"]
+            vb.customize ["modifyvm", :id, "--audio", "none"]
+            vb.customize ["modifyvm", :id, "--nictype1", "virtio"]
+            vb.customize ["modifyvm", :id, "--nictype2", "virtio"]
+            vb.customize ["modifyvm", :id, "--nictype3", "virtio"]
         end
         node.vm.hostname = "k8s-lb"
         node.vm.network :public_network, ip: PUBLIC_IP_NW + "#{LB_IP_START}", bridge: [
@@ -30,7 +39,7 @@ Vagrant.configure("2") do |config|
         ]
         node.vm.network :private_network, ip: PRIVATE_IP_NW + "#{LB_IP_START}"
         node.vm.provision "ansible" do |ansible|
-            ansible.playbook = "ansible/loadbalancer.yml"
+            ansible.playbook = "ansible/playbooks/loadbalancer.yml"
             ansible.extra_vars = {
                 node_ip: PUBLIC_IP_NW + "#{LB_IP_START}",
             }
@@ -45,6 +54,13 @@ Vagrant.configure("2") do |config|
                 vb.name = "k8s-master-#{i}"
                 vb.memory = 2048
                 vb.cpus = 2
+                vb.customize ["modifyvm", :id, "--hwvirtex", "on"]
+                vb.customize ["modifyvm", :id, "--nested-hw-virt","on"]
+                vb.customize ["modifyvm", :id, "--cpuhotplug","on"]
+                vb.customize ["modifyvm", :id, "--audio", "none"]
+                vb.customize ["modifyvm", :id, "--nictype1", "virtio"]
+                vb.customize ["modifyvm", :id, "--nictype2", "virtio"]
+                vb.customize ["modifyvm", :id, "--nictype3", "virtio"]
             end
             node.vm.hostname = "k8s-master-#{i}"
             node.vm.network :public_network, ip: PUBLIC_IP_NW + "#{MASTER_IP_START + i}", bridge: [
@@ -56,9 +72,9 @@ Vagrant.configure("2") do |config|
             node.vm.network :private_network, ip: PRIVATE_IP_NW + "#{MASTER_IP_START + i}"
             node.vm.provision "ansible" do |ansible|
                 if i == 1
-                    ansible.playbook = "ansible/master_primary.yml"
+                    ansible.playbook = "ansible/playbooks/master_primary.yml"
                 else
-                    ansible.playbook = "ansible/master_secondary.yml"
+                    ansible.playbook = "ansible/playbooks/master_secondary.yml"
                 end
                 ansible.extra_vars = {
                     node_ip: PUBLIC_IP_NW + "#{MASTER_IP_START + i}",
@@ -74,6 +90,13 @@ Vagrant.configure("2") do |config|
                 vb.name = "k8s-worker-#{i}"
                 vb.memory = 512
                 vb.cpus = 1
+                vb.customize ["modifyvm", :id, "--hwvirtex", "on"]
+                vb.customize ["modifyvm", :id, "--nested-hw-virt","on"]
+                vb.customize ["modifyvm", :id, "--cpuhotplug","on"]
+                vb.customize ["modifyvm", :id, "--audio", "none"]
+                vb.customize ["modifyvm", :id, "--nictype1", "virtio"]
+                vb.customize ["modifyvm", :id, "--nictype2", "virtio"]
+                vb.customize ["modifyvm", :id, "--nictype3", "virtio"]
             end
             node.vm.hostname = "k8s-worker-#{i}"
             node.vm.network :public_network, ip: PUBLIC_IP_NW + "#{WORKER_IP_START + i}", bridge: [
@@ -84,7 +107,7 @@ Vagrant.configure("2") do |config|
             ]
             node.vm.network :private_network, ip: PRIVATE_IP_NW + "#{WORKER_IP_START + i}"
             node.vm.provision "ansible" do |ansible|
-                ansible.playbook = "ansible/worker.yml"
+                ansible.playbook = "ansible/playbooks/worker.yml"
                 ansible.extra_vars = {
                     node_ip: PUBLIC_IP_NW + "#{WORKER_IP_START + i}",
                 }
