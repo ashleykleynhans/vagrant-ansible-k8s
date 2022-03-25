@@ -1,0 +1,55 @@
+---
+# The frontend loadbalncer enables access to the k8s cluser from the
+# host machine using Traefik (https://github.com/traefik/traefik)
+- hosts: all
+  become: true
+
+  vars:
+    traefik_version: 2.6.2
+    traefik_linux_binary: "traefik_v{{ traefik_version }}_linux_amd64.tar.gz"
+    traefik_binary_checksum: 485706d5ab8ee1a9c2ce859d7eb6977e6f25f9f348a8308605e9791ff2b28906 
+
+  tasks:
+    - name: Include task to install packages that enable apt over HTTPS
+      ansible.builtin.include_tasks: includes/apt_over_https.yml
+
+    - name: Include task to install useful packages
+      ansible.builtin.include_tasks: includes/install_useful_packages.yml
+
+    - name: Download compressed Traefik binary for Linux from Github release page
+      ansible.builtin.get_url:
+        url: "https://github.com/traefik/traefik/releases/download/v{{ traefik_version }}/{{ traefik_linux_binary }}"
+        dest: "/tmp/{{ traefik_linux_binary }}"
+        checksum: "sha256:{{ traefik_binary_checksum }}"
+
+    - name: Extract compressed Traefik binary
+      ansible.builtin.unarchive:
+        src: "/tmp/{{ traefik_linux_binary }}"
+        dest: /tmp
+        remote_src: True
+
+    - name: Copy Traefik binary from /tmp to /usr/local/bin
+      ansible.builtin.copy:
+        src: /tmp/traefik
+        dest: /usr/local/bin/traefik
+        owner: root
+        group: root
+        mode: 0755
+        remote_src: True
+
+    - name: Create /etc/traefik directory if it does not exist
+      ansible.builtin.file:
+        path: /etc/traefik
+        state: directory
+        mode: 0755
+
+    - name: Copy Traefik configuration file to /etc/traefik
+      ansible.builtin.copy:
+        src: ../files/traefik.conf.toml
+        dest: /etc/traefik/traefik.conf.toml
+        owner: root
+        group: root
+        mode: 0744
+
+    - name: Start Traefik
+        ansible.builtin.shell: "nohup /usr/local/bin/traefik --configFile=/etc/traefik/traefik.conf.toml &> /dev/null&"
