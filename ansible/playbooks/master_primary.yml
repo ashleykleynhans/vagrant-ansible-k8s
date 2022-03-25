@@ -18,7 +18,12 @@
     ansible.builtin.include_tasks: includes/bootstrap_k8s.yml
 
   - name: Initialize the k8s cluster using kubeadm
-    ansible.builtin.command: kubeadm init --control-plane-endpoint "192.168.56.30:6443" --apiserver-advertise-address 10.10.10.11
+    ansible.builtin.shell:
+      kubeadm init \
+        --control-plane-endpoint "192.168.56.30:6443" \
+        --apiserver-advertise-address 10.10.10.11 \
+        --service-cidr 10.10.10.0/24 \
+        --pod-network-cidr 172.17.0.0/16
 
   - name: Include task to setup kubeconfig
     ansible.builtin.include_tasks: includes/setup_kube_config.yml
@@ -27,7 +32,7 @@
     ansible.builtin.command: kubeadm token create --print-join-command
     register: join_command
 
-  # Only required for additional master nodes, not worker nodes
+  # Generate the cert key that the secondary masters will use to join the cluster
   - name: Upload certs and get the key
     ansible.builtin.shell: kubeadm init phase upload-certs --upload-certs | tail -n 1
     register: cert_key
@@ -46,9 +51,13 @@
     delegate_to: localhost
     become: no
 
-  # Install kube-flannel
-  - name: Install kube-flannel
-    ansible.builtin.command: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+  - name: Install k8s cluster add-ons
+    ansible.builtin.command: "kubectl apply -f {{ item }}"
+    loop:
+      # k8s networking overlay for pods
+      - https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+      # Admin dashboard
+      - https://raw.githubusercontent.com/kubernetes/dashboard/v2.5.0/aio/deploy/recommended.yaml
 
   # Setup a handler for checking Docker daemon
   handlers:

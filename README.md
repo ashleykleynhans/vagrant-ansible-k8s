@@ -12,11 +12,14 @@ At least the following hardware resources will be required on the host machine t
 
 | VM           | CPU | Memory |
 |--------------|-----|--------|
-| k8s-lb       | 1   | 512MB  |
-| k8s-master-1 | 2   | 2GB    |
-| k8s-master-2 | 2   | 2GB    |
-| k8s-master-3 | 2   | 2GB    |
-| k8s-worker-1 | 1   | 512MB  |
+| k8s-lb       |  1  | 512MB  |
+| k8s-master-1 |  2  | 2GB    |
+| k8s-master-2 |  2  | 2GB    |
+| k8s-master-3 |  2  | 2GB    |
+| k8s-worker-1 |  1  | 512MB  |
+| k8s-worker-2 |  1  | 512MB  |
+|--------------|-----|--------|
+| TOTAL        |  5  | 7.5GB  |
 
 ## Clone the GitHub Repository
 
