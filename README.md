@@ -6,6 +6,12 @@ Provision a High Availability Multi Master Kubernetes Cluster using Vagrant, Vir
 * 2 Kubernetes worker nodes where the Docker containers will be deployed to
 * 1 HAProxy Load Balancer to achieve High Availability across the master nodes
 
+With a default Kubernetes configuration, no external IP addresses are assigned when a LoadBalancer service is created.
+
+Fortunately [MetalLB](https://metallb.universe.tf/) solves this problem, and has been implented to allow external IP addresses to be assigned to Load Balancers in the Kubernetes Cluster.
+
+The configuration can be viewed on [Github](https://github.com/ashleykleynhans/vagrant-ansible-k8s/blob/master/k8s/metallb-config.yml).
+
 ## Requirements
 
 At least the following hardware resources will be required on the host machine that will be running the VirtualBox guest VMs:
