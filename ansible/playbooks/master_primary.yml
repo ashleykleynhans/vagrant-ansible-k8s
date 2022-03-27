@@ -17,13 +17,13 @@
   - name: Include task to bootstrap k8s
     ansible.builtin.include_tasks: includes/bootstrap_k8s.yml
 
+   # The --pod-network-cidr=10.244.0.0/16 option is a requirement for Flannel - don't change that network address!
   - name: Initialize the k8s cluster using kubeadm
     ansible.builtin.shell:
       kubeadm init \
         --control-plane-endpoint "192.168.56.30:6443" \
         --apiserver-advertise-address 10.10.10.11 \
-        --service-cidr 10.10.10.0/24 \
-        --pod-network-cidr 172.17.0.0/16
+        --pod-network-cidr=10.244.0.0/16
 
   - name: Include task to setup kubeconfig
     ansible.builtin.include_tasks: includes/setup_kube_config.yml
@@ -32,32 +32,41 @@
     ansible.builtin.command: kubeadm token create --print-join-command
     register: join_command
 
-  # Generate the cert key that the secondary masters will use to join the cluster
+  # Only required for additional master nodes, not worker nodes
   - name: Upload certs and get the key
     ansible.builtin.shell: kubeadm init phase upload-certs --upload-certs | tail -n 1
     register: cert_key
 
-  - name: Save master join command to file
+  - name: Save join command to file
     ansible.builtin.template:
-      src: ../templates/master_join_command.j2
-      dest: /tmp/master-join-command
+      src: ../templates/join_command.j2
+      dest: /tmp/join-command
     delegate_to: localhost
     become: no
 
-  - name: Save worker join command to file
+  - name: Save certificate key to file
     ansible.builtin.template:
-      src: ../templates/worker_join_command.j2
-      dest: /tmp/worker-join-command
+      src: ../templates/cert_key.j2
+      dest: /tmp/cert-key
     delegate_to: localhost
     become: no
 
-  - name: Install k8s cluster add-ons
+  # Install kube-flannel as the CNI (Container Network Interface)
+  - name: Install kube-flannel
+    ansible.builtin.command: kubectl apply -f https://github.com/coreos/flannel/raw/master/Documentation/kube-flannel.yml
+
+  # Install Local Storage
+  - name: Install Local Storage
+    ansible.builtin.command: kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/deploy/local-path-storage.yaml
+
+  # Install MetalLB Load Balancer
+  - name: Install MetalLB Load Balancer
     ansible.builtin.command: "kubectl apply -f {{ item }}"
     loop:
-      # k8s networking overlay for pods
-      - https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
-      # Admin dashboard
-      - https://raw.githubusercontent.com/kubernetes/dashboard/v2.5.0/aio/deploy/recommended.yaml
+      # Create namespace
+      - https://raw.githubusercontent.com/metallb/metallb/v0.12.1/manifests/namespace.yaml
+      # Install MetalLB
+      - https://raw.githubusercontent.com/metallb/metallb/v0.12.1/manifests/metallb.yaml
 
   # Setup a handler for checking Docker daemon
   handlers:
