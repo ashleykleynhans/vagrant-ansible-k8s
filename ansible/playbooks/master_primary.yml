@@ -67,6 +67,8 @@
       - https://raw.githubusercontent.com/metallb/metallb/v0.12.1/manifests/namespace.yaml
       # Install MetalLB
       - https://raw.githubusercontent.com/metallb/metallb/v0.12.1/manifests/metallb.yaml
+      # Configure MetalLB IP Pool range
+      - https://raw.githubusercontent.com/ashleykleynhans/vagrant-ansible-k8s/master/k8s/metallb-config.yml
 
   # Setup a handler for checking Docker daemon
   handlers:
