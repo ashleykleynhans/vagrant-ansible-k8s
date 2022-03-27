@@ -18,7 +18,7 @@ At least the following hardware resources will be required on the host machine t
 | k8s-master-3 |  2  | 2GB    |
 | k8s-worker-1 |  1  | 512MB  |
 | k8s-worker-2 |  1  | 512MB  |
-|--------------|-----|--------|
+|              |     |        |
 | TOTAL        |  5  | 7.5GB  |
 
 ## Clone the GitHub Repository
