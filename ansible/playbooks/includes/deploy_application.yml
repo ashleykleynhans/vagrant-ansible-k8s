@@ -1,0 +1,9 @@
+---
+# Deploy an application
+- name: Deploy an application
+  ansible.builtin.command: "kubectl apply -f {{ item }}"
+  loop:
+    # Deploy nginx application
+    - https://raw.githubusercontent.com/ashleykleynhans/vagrant-ansible-k8/master/k8s/deployment.yml
+    # Create Load Balancer with external IP 10.10.10.180 to expose nginx outside of the k8s cluster
+    - https://raw.githubusercontent.com/ashleykleynhans/vagrant-ansible-k8/master/k8s/loadbalancer.yml

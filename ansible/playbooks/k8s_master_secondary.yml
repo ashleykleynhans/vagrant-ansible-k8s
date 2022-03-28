@@ -10,6 +10,9 @@
     - name: Include task to create hosts file
       ansible.builtin.include_tasks: includes/create_hosts_file.yml
 
+    - name: Include task to create resolv.conf
+      ansible.builtin.include_tasks: includes/create_resolv_conf.yml
+
     - name: Include task to install packages that enable apt over HTTPS
       ansible.builtin.include_tasks: includes/apt_over_https.yml
 
