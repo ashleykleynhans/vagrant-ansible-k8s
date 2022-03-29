@@ -92,3 +92,27 @@ vagrant halt
 ```bash
 vagrant destroy -f
 ```
+
+## Deploying an Application
+
+SSH to one of the k8s masters:
+
+```bash
+vagrant ssh k8s-master-1
+```
+
+Then run the following command to deploy 2 pods running nginx to the k8s cluster:
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/ashleykleynhans/vagrant-ansible-k8s/master/k8s/deployment.yml
+```
+
+Then deploy a service that will use MetalLB to expose the nginx application outside of the k8s cluster:
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/ashleykleynhans/vagrant-ansible-k8s/master/k8s/service.yml
+```
+
+Now you will be able to access nginx through your web browser at:
+
+[http://10.10.10.180/](http://10.10.10.180/)
