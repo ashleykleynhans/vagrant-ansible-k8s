@@ -1,4 +1,4 @@
-VAGRANT_IMAGE_NAME = "ubuntu/focal64"
+VAGRANT_IMAGE_NAME = "ubuntu/jammy64"
 
 K8S_MASTER_NODES = 3
 K8S_WORKER_NODES = 2

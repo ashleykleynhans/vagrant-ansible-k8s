@@ -1,6 +1,6 @@
 # vagrant-ansible-k8s
 
-Provision a High Availability Multi Master Kubernetes Cluster using Vagrant, Virtualbox and Ansible with the following configuration:
+Provision a High Availability Multi Master Kubernetes Cluster on Ubuntu 22.04 LTS servers using Vagrant, Virtualbox and Ansible with the following configuration:
 
 * 3 Kubernetes master nodes that manage the cluster
 * 2 Kubernetes worker nodes where the Docker containers will be deployed to

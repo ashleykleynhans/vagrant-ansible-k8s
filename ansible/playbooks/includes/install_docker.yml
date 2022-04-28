@@ -6,7 +6,7 @@
 
 - name: Add apt repository for stable version of Docker
   ansible.builtin.apt_repository:
-    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu jammy stable
     state: present
 
 - name: Install docker and its dependencies
