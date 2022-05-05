@@ -31,6 +31,7 @@ Vagrant.configure("2") do |config|
         lb.vm.hostname = "k8s-lb"
         lb.vm.network :private_network, ip: PRIVATE_IP_NW + "#{K8S_LB_IP_START}"
         lb.vm.provision "ansible" do |ansible|
+            ansible.compatibility_mode = "2.0"
             ansible.playbook = "ansible/playbooks/k8s_lb.yml"
             ansible.extra_vars = {
                 node_ip: PRIVATE_IP_NW + "#{K8S_LB_IP_START}",
@@ -57,6 +58,7 @@ Vagrant.configure("2") do |config|
             node.vm.hostname = "k8s-master-#{i}"
             node.vm.network :private_network, ip: PRIVATE_IP_NW + "#{K8S_MASTER_IP_START + i}"
             node.vm.provision "ansible" do |ansible|
+                ansible.compatibility_mode = "2.0"
                 if i == 1
                     ansible.playbook = "ansible/playbooks/k8s_master_primary.yml"
                 else
@@ -87,6 +89,7 @@ Vagrant.configure("2") do |config|
             node.vm.hostname = "k8s-worker-#{i}"
             node.vm.network :private_network, ip: PRIVATE_IP_NW + "#{K8S_WORKER_IP_START + i}"
             node.vm.provision "ansible" do |ansible|
+                ansible.compatibility_mode = "2.0"
                 ansible.playbook = "ansible/playbooks/k8s_worker.yml"
                 ansible.extra_vars = {
                     node_ip: PRIVATE_IP_NW + "#{K8S_WORKER_IP_START + i}",
