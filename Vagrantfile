@@ -18,7 +18,7 @@ Vagrant.configure("2") do |config|
     config.vm.define "k8s-lb" do |lb|
         lb.vm.provider "virtualbox" do |vb|
             vb.name = "k8s-lb"
-            vb.memory = 512
+            vb.memory = 768
             vb.cpus = 1
             vb.customize ["modifyvm", :id, "--hwvirtex", "on"]
             vb.customize ["modifyvm", :id, "--nested-hw-virt","on"]
@@ -27,6 +27,7 @@ Vagrant.configure("2") do |config|
             vb.customize ["modifyvm", :id, "--nictype1", "virtio"]
             vb.customize ["modifyvm", :id, "--nictype2", "virtio"]
             vb.customize ["modifyvm", :id, "--nictype3", "virtio"]
+            vb.customize ["modifyvm", :id, "--cpuexecutioncap", "50"]
         end
         lb.vm.hostname = "k8s-lb"
         lb.vm.network :private_network, ip: PRIVATE_IP_NW + "#{K8S_LB_IP_START}"
@@ -54,6 +55,7 @@ Vagrant.configure("2") do |config|
                 vb.customize ["modifyvm", :id, "--nictype1", "virtio"]
                 vb.customize ["modifyvm", :id, "--nictype2", "virtio"]
                 vb.customize ["modifyvm", :id, "--nictype3", "virtio"]
+                vb.customize ["modifyvm", :id, "--cpuexecutioncap", "50"]
             end
             node.vm.hostname = "k8s-master-#{i}"
             node.vm.network :private_network, ip: PRIVATE_IP_NW + "#{K8S_MASTER_IP_START + i}"
@@ -76,7 +78,7 @@ Vagrant.configure("2") do |config|
         config.vm.define "k8s-worker-#{i}" do |node|
             node.vm.provider "virtualbox" do |vb|
                 vb.name = "k8s-worker-#{i}"
-                vb.memory = 512
+                vb.memory = 768
                 vb.cpus = 1
                 vb.customize ["modifyvm", :id, "--hwvirtex", "on"]
                 vb.customize ["modifyvm", :id, "--nested-hw-virt","on"]
@@ -85,6 +87,7 @@ Vagrant.configure("2") do |config|
                 vb.customize ["modifyvm", :id, "--nictype1", "virtio"]
                 vb.customize ["modifyvm", :id, "--nictype2", "virtio"]
                 vb.customize ["modifyvm", :id, "--nictype3", "virtio"]
+                vb.customize ["modifyvm", :id, "--cpuexecutioncap", "50"]
             end
             node.vm.hostname = "k8s-worker-#{i}"
             node.vm.network :private_network, ip: PRIVATE_IP_NW + "#{K8S_WORKER_IP_START + i}"

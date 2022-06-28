@@ -17,13 +17,14 @@
 - name: Add an apt signing key for k8s
   ansible.builtin.apt_key:
     url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    keyring: /usr/share/keyrings/k8s.gpg
     state: present
 
 - name: Adding apt repository for k8s
   ansible.builtin.apt_repository:
-    repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+    repo: deb [signed-by=/usr/share/keyrings/k8s.gpg] https://apt.kubernetes.io/ kubernetes-xenial main
     state: present
-    filename: kubernetes.list
+    filename: kubernetes
 
 - name: Install k8s binaries
   ansible.builtin.apt:
