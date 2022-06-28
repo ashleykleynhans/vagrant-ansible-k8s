@@ -22,6 +22,8 @@
 
 - name: Adding apt repository for k8s
   ansible.builtin.apt_repository:
+    # Google does not provide repos for bionic, focal, jammy etc,
+    # which is why xenial is used
     repo: deb [signed-by=/usr/share/keyrings/k8s.gpg] https://apt.kubernetes.io/ kubernetes-xenial main
     state: present
     filename: kubernetes
